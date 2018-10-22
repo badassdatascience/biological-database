@@ -4,6 +4,7 @@
 import pprint as pp
 import pickle
 from neo4j.v1 import GraphDatabase
+import sys
 
 #
 # user settings
@@ -11,7 +12,7 @@ from neo4j.v1 import GraphDatabase
 names_file = 'data/taxonomy/names.dmp'
 uri = 'bolt://localhost:7687'
 username = 'neo4j'
-password = 'test'
+password = sys.argv[1]
 
 #
 # load names file
