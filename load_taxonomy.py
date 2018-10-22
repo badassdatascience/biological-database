@@ -37,28 +37,17 @@ for line in f:
 
 f.close()
 
-#
-# reorganize in a format useful for bulk Neo4j load
-#
-names_list = []
-for tax_id in sorted(names_info.keys()):
-    names_list.append([tax_id, names_info[tax_id]])
+# #
+# # reorganize in a format useful for bulk Neo4j load
+# #
+# names_list = []
+# for tax_id in sorted(names_info.keys()):
+#     names_list.append([tax_id, names_info[tax_id]])
 
 #
 # connect to Neo4j
 #
 driver = GraphDatabase.driver(uri, auth=(username, password))
-
-#
-# transaction functions
-#
-def add_node(list_to_use):
-    with driver.session() as session:
-        session.write_transaction(create_node, list_to_use)
-
-def create_node(tx, list_to_use):
-    cmd = 'UNWIND $list_to_use AS n CREATE (c:NCBI_TAXONOMY {id : n[0], name : n[1]}) RETURN c;'
-    tx.run(cmd, list_to_use=list_to_use)
 
 #
 # clear the way (CRUDE)
@@ -70,10 +59,30 @@ cmd = 'MATCH (c:NCBI_TAXONOMY) DELETE c;'
 with driver.session() as session:
     session.run(cmd)
 
+# #
+# # transaction functions
+# #
+# def add_node(list_to_use):
+#     with driver.session() as session:
+#         session.write_transaction(create_node, list_to_use)
+
+# def create_node(tx, list_to_use):
+#     cmd = 'UNWIND $list_to_use AS n CREATE (c:NCBI_TAXONOMY {id : n[0], name : n[1]}) RETURN c;'
+#     tx.run(cmd, list_to_use=list_to_use)
+
+# #
+# # load database
+# #
+# add_node(names_list)
+
 #
 # load database
 #
-add_node(names_list)
+for tax_id in sorted(list(names_info.keys())):
+    name = names_info[tax_id]
+    cmd = 'CREATE (t:NCBI_TAXONOMY {id : $tax_id, name : $name}) RETURN t;'
+    with driver.session() as session:
+        session.run(cmd, tax_id = tax_id, name = name)
 
 #
 # Make indices on id and name
