@@ -10,9 +10,11 @@ import sys
 # user settings
 #
 names_file = 'data/taxonomy/names.dmp'
-uri = 'bolt://localhost:7687'
 username = 'neo4j'
-password = sys.argv[1]
+password = sys.argv[2]
+
+hostname = sys.argv[1]
+uri = 'bolt://' + hostname + ':7687'
 
 #
 # load names file
