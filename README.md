@@ -37,7 +37,7 @@ python3 load_gene.py
 
 ## Useful queries
 
-###Boring queries
+### Boring queries
 
 Find the taxonomy node for human:
 
