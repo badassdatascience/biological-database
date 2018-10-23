@@ -32,7 +32,7 @@ cd ..
 
 python3 load_taxonomy.py
 
-python3 load_gene.py
+python3 load_gene_part_01.py
 ```
 
 ## Useful queries
