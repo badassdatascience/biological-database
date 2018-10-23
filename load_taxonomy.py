@@ -11,7 +11,7 @@ import sys
 #
 names_file = 'data/taxonomy/names.dmp'
 username = 'neo4j'
-high_memory_server = False
+high_memory_server = True
 password = sys.argv[2]
 
 hostname = sys.argv[1]
@@ -37,6 +37,13 @@ for line in f:
     names_info[tax_id] = name
 
 f.close()
+
+#
+# output how many we expect to load
+#
+print()
+print('We expect to load ' + str(len(names_info.keys())) + ' taxonomy nodes.')
+print()
 
 #
 # connect to Neo4j
