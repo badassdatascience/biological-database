@@ -11,7 +11,9 @@ import sys
 #
 output_directory = 'output'
 chunk_size = 25000
+
 load_all_synonyms = True
+load_all_synonyms_to_tax_id = True
 
 username = 'neo4j'
 hostname = sys.argv[1]
@@ -85,3 +87,66 @@ if load_all_synonyms:
         add_synonym_node(ch)
         print('Added ' + str((i + 1) * chunk_size) + ' nodes.')
     print()
+
+    #
+    # create index on symbol
+    #
+    cmd = 'CREATE INDEX ON :NCBI_GENE_SYNONYM(symbol);'
+    with driver.session() as session:
+        session.run(cmd)
+
+
+
+#####################################
+#   link synonyms to taxonomy IDs   #
+#####################################
+
+if load_all_synonyms_to_tax_id:
+
+    #
+    # clear the way (CRUDE)
+    #
+    cmd = 'MATCH (c:NCBI_GENE_SYNONYM)-[r:HAS_NCBI_TAXONOMY]->(t:NCBI_TAXONOMY) DELETE r;'
+    with driver.session() as session:
+        session.run(cmd)
+    
+    #
+    # organize list
+    #
+    link_list = []
+    for syn in sorted(list(synonyms_to_tax_id.keys())):
+        for tax_id in sorted(list(synonyms_to_tax_id[syn].keys())):
+            link_list.append([syn, tax_id])
+
+    #
+    # report how many synonym to tax ID relationships we are loading
+    #
+    print()
+    print('We are loading ' + str(len(link_list)) + ' gene synonym to taxonomy relationships.')
+    print()
+
+            
+    #
+    # transaction functions
+    #
+    def add_synonym_to_tax_id_relationship(list_to_use):
+        with driver.session() as session:
+            session.write_transaction(create_synonym_to_tax_id_relationship, list_to_use)
+
+    def create_synonym_to_tax_id_relationship(tx, list_to_use):
+        cmd = 'UNWIND $list_to_use AS n MATCH (gs:NCBI_GENE_SYNONYM), (t:NCBI_TAXONOMY) WHERE gs.symbol = n[0] and t.id = n[1] CREATE (gs)-[r:HAS_NCBI_TAXONOMY]->(t) RETURN gs, r, t'
+        tx.run(cmd, list_to_use=list_to_use)
+
+    #
+    # load all synonym to tax ID links
+    #
+    chunks = [link_list[x:x+chunk_size] for x in range(0, len(link_list), chunk_size)]
+    for i, ch in enumerate(chunks):
+        add_synonym_to_tax_id_relationship(ch)
+        print('Added ' + str((i + 1) * chunk_size) + ' relationships.')
+    print()
+        
+#
+# close Neo4j driver
+#
+driver.close()
