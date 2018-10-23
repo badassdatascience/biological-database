@@ -9,6 +9,7 @@ import sys
 #
 # user settings
 #
+chunk_size = 10000
 names_file = 'data/taxonomy/names.dmp'
 username = 'neo4j'
 high_memory_server = True
@@ -87,7 +88,11 @@ if high_memory_server:
     #
     # load database
     #
-    add_node(names_list)
+    chunks = [names_list[x:x+chunk_size] for x in range(0, len(names_list), chunk_size)]
+    for i, ch in enumerate(chunks):
+        add_node(ch)
+        print('Added ' + str((i + 1) * chunk_size) + ' nodes.')
+    print()
 
 #
 # low memory server version
