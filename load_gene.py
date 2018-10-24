@@ -1,85 +1,69 @@
-
 #
 # import useful libraries
 #
 import pprint as pp
 import pickle
+from neo4j import GraphDatabase
+import sys
+import glob
+import utilities as ut
 
 #
 # user settings
 #
-gene_info_file = 'data/gene/gene_info'
+chunk_size = 25000
 output_directory = 'output'
-load_gene_info_file = True
+username = 'neo4j'
+password = sys.argv[2]
+
+hostname = sys.argv[1]
+uri = 'bolt://' + hostname + ':7687'
 
 #
-# load gene_info file
+# get file list
 #
-if load_gene_info_file:
-
-    #
-    # initialize data structures
-    #
-    gene_info = {}
-    synonyms_to_tax_id = {}
-
-    #
-    # iterate through each line in the file
-    #
-    f = open(gene_info_file)
-    for line in f:
-        line = [x.strip() for x in line.split('\t')]
-
-        tax_id = line[0]
-
-        if tax_id == '#tax_id':
-            continue
-
-        tax_id = int(tax_id)
-        gene_id = int(line[1])
-        symbol = line[2]
-        synonyms = line[4]
-        type_of_gene = line[9]
-        name = line[11]
-
-        if symbol == '-':
-            symbol = None
-        if type_of_gene == '-':
-            type_of_gene = None
-        if name == '-':
-            name = None
-
-        cleaned_synonyms = [x for x in synonyms.split('|') if x != '-']
-        for syn in cleaned_synonyms:
-            if not syn in synonyms_to_tax_id:
-                synonyms_to_tax_id[syn] = {}
-            synonyms_to_tax_id[syn][tax_id] = None
-
-        gene_info[gene_id] = {
-            'tax_id' : tax_id,
-            'symbol' : symbol,
-            'type_of_gene' : type_of_gene,
-            'name' : name,
-            'synonyms' : cleaned_synonyms,
-            }
-
-    f.close()
-
-    #
-    # save our newly loaded data structures
-    #
-    with open(output_directory + '/gene_info.pickle', 'wb') as f:
-        pickle.dump(gene_info, f)
-    with open(output_directory + '/synonyms_to_tax_id.pickle', 'wb') as f:
-        pickle.dump(synonyms_to_tax_id, f)
+filename_list = glob.glob(output_directory + '/gene_lists/*')
 
 #
-# load our data structures
+# connect to Neo4j
 #
-else:
-    with open(output_directory + '/gene_info.pickle', 'rb') as f:
-        gene_info = pickle.load(f)
-    with open(output_directory + '/synonyms_to_tax_id.pickle', 'rb') as f:
-        synonyms_to_tax_id = pickle.load(f)
+driver = GraphDatabase.driver(uri, auth=(username, password))
 
+#
+# clear the way (CRUDE)
+#
+cmd = 'MATCH (c:NCBI_GENE)-[r]-() DELETE r;'
+with driver.session() as session:
+    session.run(cmd)
+cmd = 'MATCH (c:NCBI_GENE) DELETE c;'
+with driver.session() as session:
+    session.run(cmd)
+
+#
+# iterate through the files
+#
+for filename in filename_list:
+    with open(filename, 'rb') as f:
+        names_list = pickle.load(f)
+    
+    #
+    # load database
+    #
+    cmd = 'UNWIND $list_to_use AS n CREATE (g:NCBI_GENE {id : n[0], symbol : n[1], type_of_gene: n[2], name : n[3]}) RETURN g;'
+    ut.load_list(names_list, chunk_size, driver, cmd)
+
+#
+# Make indices on id and name
+#
+cmd = 'CREATE INDEX ON :NCBI_GENE(id);'
+with driver.session() as session:
+    session.run(cmd)
+cmd = 'CREATE INDEX ON :NCBI_GENE(symbol);'
+with driver.session() as session:
+    session.run(cmd)
+
+#
+# close Neo4j driver
+#
+driver.close()
 

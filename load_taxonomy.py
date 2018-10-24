@@ -3,15 +3,16 @@
 #
 import pprint as pp
 import pickle
-from neo4j.v1 import GraphDatabase
+from neo4j import GraphDatabase
 import sys
+import utilities as ut
 
 #
 # user settings
 #
+chunk_size = 25000
 names_file = 'data/taxonomy/names.dmp'
 username = 'neo4j'
-high_memory_server = False
 password = sys.argv[2]
 
 hostname = sys.argv[1]
@@ -39,6 +40,13 @@ for line in f:
 f.close()
 
 #
+# output how many we expect to load
+#
+print()
+print('We expect to load ' + str(len(names_info.keys())) + ' taxonomy nodes.')
+print()
+
+#
 # connect to Neo4j
 #
 driver = GraphDatabase.driver(uri, auth=(username, password))
@@ -54,47 +62,17 @@ with driver.session() as session:
     session.run(cmd)
 
 #
-# transaction functions
+# reorganize in a format useful for bulk Neo4j load
 #
-def add_node(list_to_use):
-    with driver.session() as session:
-        session.write_transaction(create_node, list_to_use)
-
-def create_node(tx, list_to_use):
-    cmd = 'UNWIND $list_to_use AS n CREATE (c:NCBI_TAXONOMY {id : n[0], name : n[1]}) RETURN c;'
-    tx.run(cmd, list_to_use=list_to_use)
-
+names_list = []
+for tax_id in sorted(names_info.keys()):
+    names_list.append([tax_id, names_info[tax_id]])
 
 #
-# high memory server version
+# load database
 #
-if high_memory_server:
-
-    #
-    # reorganize in a format useful for bulk Neo4j load
-    #
-    names_list = []
-    for tax_id in sorted(names_info.keys()):
-        names_list.append([tax_id, names_info[tax_id]])
-
-    #
-    # load database
-    #
-    add_node(names_list)
-
-#
-# low memory server version
-#
-else:
-
-    #
-    # load database
-    #
-    for tax_id in sorted(list(names_info.keys())):
-        name = names_info[tax_id]
-        cmd = 'CREATE (t:NCBI_TAXONOMY {id : $tax_id, name : $name}) RETURN t;'
-        with driver.session() as session:
-            session.run(cmd, tax_id = tax_id, name = name)
+cmd = 'UNWIND $list_to_use AS n CREATE (c:NCBI_TAXONOMY {id : n[0], name : n[1]}) RETURN c;'
+ut.load_list(names_list, chunk_size, driver, cmd)
 
 #
 # Make indices on id and name

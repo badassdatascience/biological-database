@@ -4,10 +4,13 @@ This is basically where I'm collecting all my Neo4j code for making general purp
 
 I started with NCBI's taxonomy and gene data.
 
-## How to run this
+## How to run this thing
+
+You need a lot of memory...
 
 ```
 mkdir output
+mkdir output/gene_lists
 mkdir data
 
 cd data
@@ -30,9 +33,15 @@ cd ..
 
 ./packages/neo4j-community-3.3.3/bin/neo4j start
 
-python3 load_taxonomy.py
+python3 load_taxonomy.py hostname password
 
-python3 load_gene.py
+python3 preprocess_gene_info.py
+
+python3 load_gene.py hostname password
+
+python3 load_and_link_synonyms.py hostname password
+
+python3 link_genes_to_taxonomy.py hostname password
 ```
 
 ## Useful queries
@@ -48,4 +57,16 @@ MATCH (c:NCBI_TAXONOMY) WHERE c.id = 9606 RETURN c;
 Find the taxonomy node for human, which specific attributes:
 ```
 MATCH (c:NCBI_TAXONOMY) WHERE c.id = 9606 RETURN c.id AS NCBI_taxonomy_id, c.name AS scientific_name;
+```
+
+Find the NCBI gene synonym node 'A1B':
+```
+MATCH (n:NCBI_GENE_SYNONYM) WHERE n.symbol = "A1B" RETURN n;
+```
+
+### Slightly more interesting queries
+
+Show taxonomy (should be 9606--human) and gene synonyms for human gene A1BG:
+```
+MATCH (g:NCBI_GENE)-[r1:HAS_NCBI_TAXONOMY]->(t:NCBI_TAXONOMY), (g)-[r2:HAS_NCBI_GENE_SYNONYM]->(gs:NCBI_GENE_SYNONYM), (gs)-[r3:HAS_NCBI_TAXONOMY]->(t) WHERE g.id = 1 RETURN g, r1, t, r2, gs, r3;
 ```
