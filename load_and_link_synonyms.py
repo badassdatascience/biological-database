@@ -13,8 +13,8 @@ import utilities as ut
 output_directory = 'output'
 chunk_size = 25000
 
-load_all_synonyms = False
-load_all_synonyms_to_tax_id = False
+load_all_synonyms = True
+load_all_synonyms_to_tax_id = True
 load_all_synonyms_to_gene_id = True
 
 username = 'neo4j'
