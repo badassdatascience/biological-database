@@ -59,7 +59,7 @@ MATCH (n:NCBI_GENE_SYNONYM) WHERE n.symbol = "A1B" RETURN n;
 
 ### Slightly more interesting queries
 
+Show taxonomy (should be 9606--human) and gene synonyms for human gene A1BG:
 ```
-MATCH (g:NCBI_GENE)-[r2]->(gs:NCBI_GENE_SYNONYM)-[r]->(t:NCBI_TAXONOMY) WHERE gs.symbol = "A1B" AND t.id = 9606 RETURN gs, r, t, g, r2;
+MATCH (g:NCBI_GENE)-[r1:HAS_NCBI_TAXONOMY]->(t:NCBI_TAXONOMY), (g)-[r2:HAS_NCBI_GENE_SYNONYM]->(gs:NCBI_GENE_SYNONYM), (gs)-[r3:HAS_NCBI_TAXONOMY]->(t) WHERE g.id = 1 RETURN g, r1, t, r2, gs, r3;
 ```
-
