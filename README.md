@@ -38,6 +38,8 @@ python3 preprocess_gene_info.py
 python3 load_gene.py hostname password
 
 python3 load_and_link_synonyms.py hostname password
+
+python3 link_genes_to_taxonomy.py hostname password
 ```
 
 ## Useful queries
