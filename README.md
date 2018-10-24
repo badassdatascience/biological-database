@@ -32,8 +32,9 @@ cd ..
 ./packages/neo4j-community-3.3.3/bin/neo4j start
 
 python3 load_taxonomy.py localhost "password"
-python3 01.py
-python3 02.py localhost "password"
+python3 preprocess_gene_info.py
+python3 load_gene.py localhost "password"
+
 python3 load_gene_part_01_b.py localhost "password"
 ```
 
