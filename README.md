@@ -4,7 +4,7 @@ This is basically where I'm collecting all my Neo4j code for making general purp
 
 I started with NCBI's taxonomy and gene data.
 
-## How to run this
+## How to run this thing
 
 You need a lot of memory...
 
