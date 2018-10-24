@@ -6,7 +6,7 @@ I started with NCBI's taxonomy and gene data.
 
 ## How to run this
 
-You need a lot of memory.
+You need a lot of memory...
 
 ```
 mkdir output
