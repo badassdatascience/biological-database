@@ -34,8 +34,7 @@ cd ..
 python3 load_taxonomy.py localhost "password"
 python3 preprocess_gene_info.py
 python3 load_gene.py localhost "password"
-
-python3 load_gene_part_01_b.py localhost "password"
+python3 load_and_link_synonyms.py localhost "password"
 ```
 
 ## Useful queries
