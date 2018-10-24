@@ -56,3 +56,10 @@ Find the NCBI gene synonym node 'A1B':
 ```
 MATCH (n:NCBI_GENE_SYNONYM) WHERE n.symbol = "A1B" RETURN n;
 ```
+
+### Slightly more interesting queries
+
+```
+MATCH (g:NCBI_GENE)-[r2]->(gs:NCBI_GENE_SYNONYM)-[r]->(t:NCBI_TAXONOMY) WHERE gs.symbol = "A1B" AND t.id = 9606 RETURN gs, r, t, g, r2;
+```
+
