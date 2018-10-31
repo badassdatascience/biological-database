@@ -27,7 +27,11 @@ cd data
 mkdir gene
 cd gene
 wget ftp://ftp.ncbi.nlm.nih.gov/gene/DATA/gene_info.gz
+wget ftp://ftp.ncbi.nlm.nih.gov/gene/DATA/gene2go.gz
+wget ftp://ftp.ncbi.nlm.nih.gov/gene/DATA/gene2pubmed.gz
 gunzip gene_info.gz
+gunzip gene2go.gz
+gunzip gene2pubmed.gz
 cd ..
 cd ..
 
