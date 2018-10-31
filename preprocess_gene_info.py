@@ -13,6 +13,7 @@ import os
 gene_info_file = 'data/gene/gene_info'
 output_directory = 'output'
 max_gene_info_list_size = 1000000
+tax_id_to_keep = [9606]
 
 #
 # CRUDELY clear the way
@@ -46,6 +47,9 @@ for line in f:
     type_of_gene = line[9]
     name = line[11]
 
+    if not tax_id in tax_id_to_keep:
+        continue
+    
     if symbol == '-':
         symbol = None
     if type_of_gene == '-':

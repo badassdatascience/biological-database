@@ -14,6 +14,7 @@ chunk_size = 25000
 names_file = 'data/taxonomy/names.dmp'
 username = 'neo4j'
 password = sys.argv[2]
+tax_to_keep = [9606]
 
 hostname = sys.argv[1]
 uri = 'bolt://' + hostname + ':7687'
@@ -29,6 +30,9 @@ for line in f:
     name = line[1]
     name_type = line[3]
 
+    if not tax_id in tax_to_keep:
+        continue
+    
     if name_type != 'scientific name':
         continue
 

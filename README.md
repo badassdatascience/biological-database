@@ -63,7 +63,7 @@ Find the taxonomy node for human:
 
 ```
 MATCH (c:NCBI_TAXONOMY) WHERE c.id = 9606 RETURN c;
-```
+``
 
 Find the taxonomy node for human, which specific attributes:
 ```

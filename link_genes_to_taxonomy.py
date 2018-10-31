@@ -48,7 +48,7 @@ for g in sorted(list(gene_to_tax_id.keys())):
 # report how many gene to tax ID relationships we are loading
 #
 print()
-print('We are loading ' + str(len(link_list)) + ' to taxonomy relationships.')
+print('We are loading ' + str(len(link_list)) + ' gene to taxonomy relationships.')
 print()
 
 #
