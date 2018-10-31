@@ -3,10 +3,19 @@
 # import useful libraries
 #
 import pprint as pp
+from neo4j import GraphDatabase
+import sys
+import utilities as ut
 
 #
 # user settings
 #
+username = 'neo4j'
+password = sys.argv[2]
+hostname = sys.argv[1]
+uri = 'bolt://' + hostname + ':7687'
+
+chunk_size = 5000
 tax_id_to_keep = [9606]
 
 #
@@ -37,4 +46,43 @@ f.close()
 
 
 #pp.pprint(gene_id_to_pubmed_id)
-pp.pprint(unique_pubmed_ids)
+#pp.pprint(unique_pubmed_ids)
+
+
+#
+# connect to Neo4j
+#
+driver = GraphDatabase.driver(uri, auth=(username, password))
+
+#
+# clear the way (CRUDE)
+#
+cmd = 'MATCH (c:NCBI_PUBMED)-[r]-() DELETE r;'
+with driver.session() as session:
+    session.run(cmd)
+cmd = 'MATCH (c:NCBI_PUBMED) DELETE c;'
+with driver.session() as session:
+    session.run(cmd)
+
+#
+# load pubmed
+#
+pubmed_list = []
+for pm in unique_pubmed_ids.keys():
+    pubmed_list.append([pm])
+cmd = 'UNWIND $list_to_use AS n CREATE (p:NCBI_PUBMED {id : n[0]}) RETURN p;'
+ut.load_list(pubmed_list, chunk_size, driver, cmd)
+
+#
+# Make index on id
+#
+cmd = 'CREATE INDEX ON :NCBI_PUBMED(id);'
+with driver.session() as session:
+    session.run(cmd)
+
+
+
+#
+# close Neo4j driver
+#
+driver.close()
